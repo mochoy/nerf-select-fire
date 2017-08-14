@@ -1,7 +1,10 @@
 #include <SoftwareSerial.h>
+#include <Button.h>
 
 //pins
 #define JOYSTICK_INPUT_PIN 1
+#define TRIGGER_INPUT_PIN 2
+#define MOTOR_OUTPUT_PIN 3
 
 //"trip" values for joystick
 #define JOYSTICK_INCRECMENT_VAL 490
@@ -13,6 +16,11 @@
 #define BURST_FIRE 2
 #define FULL_AUTO 3
 
+//values for parameters of button
+#define PU_ENABLE false
+#define INVERT false
+#define DB_TIME 20
+
 //keep track of fire modes
 int fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 
@@ -20,13 +28,22 @@ int fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 int lastJoystickReading, debounceDelay = 50;
 double lastTime; 
 
+Button trigger (TRIGGER_INPUT_PIN, PU_ENABLE, INVERT, DB_TIME);    
+
 void setup () {
     Serial.begin(9600);
+    
+    pinMode(MOTOR_OUTPUT_PIN, OUTPUT);
+    digitalWrite(MOTOR_OUTPUT_PIN, LOW);
 }
 
 void loop () {
     toggleFireModes();
-    
+
+    trigger.read();
+    if (trigger.isPressed()) {
+        fire();
+    }
 
 }
 
@@ -62,6 +79,18 @@ void toggleFireModes () {
     }
     
     lastJoystickReading = joystickReading;
+}
+
+void fire() {    
+    if (fireMode == SAFETY) {
+        Serial.println("Safety");
+    } else if (fireMode == SINGLE_FIRE) {
+        Serial.println("Single Fire");
+    } else if (fireMode == BURST_FIRE) {
+        Serial.println("Burst Fire");
+    } else if (fireMode == FULL_AUTO) {
+        Serial.println("Full Auto");
+    }
 }
 
 
