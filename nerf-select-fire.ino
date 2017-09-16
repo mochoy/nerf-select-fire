@@ -16,11 +16,6 @@
 #define BURST_FIRE 2
 #define FULL_AUTO 3
 
-//values for parameters of button
-#define PU_ENABLE false
-#define INVERT false
-#define DB_TIME 20
-
 //keep track of fire modes
 int fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 
@@ -28,7 +23,7 @@ int fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 int lastJoystickReading, debounceDelay = 50;
 double lastTime; 
 
-Button trigger (TRIGGER_INPUT_PIN, PU_ENABLE, INVERT, DB_TIME);    
+Button trigger (TRIGGER_INPUT_PIN, false, false, 20);    
 
 void setup () {
     Serial.begin(9600);
