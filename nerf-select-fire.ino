@@ -53,10 +53,7 @@ void loop () {
 //up = 0
 //neutral/middle = 1
 //down = 2
-int adjustedJoystickReading () {
-    
-    return ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) > JOYSTICK_INCRECMENT_VAL ? 0 : ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) < JOYSTICK_DECREMENT_VAL ? 2 : 1));
-
+// int adjustedJoystickReading () {
     //int rawReading = (map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500));
     // if (rawReading > JOYSTICK_INCRECMENT_VAL) {     //up
     //     return 0;
@@ -65,11 +62,12 @@ int adjustedJoystickReading () {
     // } else {    //neutral
     //     return 1;
     // }
-}
+// }
 
 //switch between the various modes
 void toggleFireModes () {
-    int joystickReading = adjustedJoystickReading();
+    int joystickReading = ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) > JOYSTICK_INCRECMENT_VAL ? 0 : ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) < JOYSTICK_DECREMENT_VAL ? 2 : 1));   //up = 0, neutral/middle = 1, down = 2
+
     //joystick debouncing
     if ((lastJoystickReading != joystickReading) && (millis() >= lastTime + debounceDelay)) {   //make sure joystick actually moved and check once every 50 milis
         if (joystickReading == 0) {     //up
