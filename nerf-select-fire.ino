@@ -2,13 +2,17 @@
 #include <Button.h>
 
 //pins
-#define JOYSTICK_INPUT_PIN 1
-#define TRIGGER_INPUT_PIN 2
-#define MOTOR_OUTPUT_PIN 3
+#define IR_GATE_PIN 0           //analog
+#define JOYSTICK_INPUT_PIN 2    //analog
+#define TRIGGER_INPUT_PIN 2     //digital
+#define MOTOR_OUTPUT_PIN 3      //digital PWM
 
 //"trip" values for joystick
 #define JOYSTICK_INCRECMENT_VAL 490
 #define JOYSTICK_DECREMENT_VAL 360
+
+//'trip' value for IR gate
+#define IR_GATE_TRIP 90
 
 //code for fire modes
 #define SAFETY 0
@@ -22,6 +26,9 @@ int fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 //keep track of debouncing joystick
 int lastJoystickReading, debounceDelay = 50;
 double lastTime; 
+
+//keep track of how many darts fire
+int numOfDartsFired = 0;
 
 Button trigger (TRIGGER_INPUT_PIN, false, false, 20);    
 
@@ -60,31 +67,22 @@ int adjustedJoystickReading () {
 
 void toggleFireModes () {
     int joystickReading = adjustedJoystickReading();
-
-//    Serial.println(reading);
     if ((lastJoystickReading != joystickReading) && (millis() >= lastTime + debounceDelay)) {   //make sure joystick actually moved and check once every 50 milis
         if (joystickReading == 0) {     //up
             fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
         } else if (joystickReading == 2) {      //down
             fireMode = ((fireMode == 0) ? 3 : fireMode - 1);    //decrement fireMode
-
-        }
-                
+        }     
         lastTime = millis();
     }
     
     lastJoystickReading = joystickReading;
 }
 
-void fire() {    
-    if (fireMode == SAFETY) {
-        Serial.println("Safety");
-    } else if (fireMode == SINGLE_FIRE) {
-        Serial.println("Single Fire");
-    } else if (fireMode == BURST_FIRE) {
-        Serial.println("Burst Fire");
-    } else if (fireMode == FULL_AUTO) {
-        Serial.println("Full Auto");
+void fire() {   
+    trigger.read();
+    if (trigger.isPressed() || (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ){
+        numOfDartsFired++;
     }
 }
 
