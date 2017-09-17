@@ -41,11 +41,7 @@ void setup () {
 
 void loop () {
     toggleFireModes();
-
-    trigger.read();
-    if (trigger.isPressed()) {
-        fire();
-    }
+    fire();
 
 }
 
@@ -74,7 +70,8 @@ void toggleFireModes () {
             fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
         } else if (joystickReading == 2) {      //down
             fireMode = ((fireMode == 0) ? 3 : fireMode - 1);    //decrement fireMode
-        }     
+        } 
+
         lastTime = millis();
     }
     
@@ -82,10 +79,8 @@ void toggleFireModes () {
 }
 
 //when dart fired
-void fire() {   
-    if ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ){
-        numOfDartsFired++;  //keep track of how may darts fired
-    }
+void fire() { 
+    numOfDartsFired += ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ? 1 : 0);  
 }
 
 
