@@ -54,19 +54,23 @@ void loop () {
 //neutral/middle = 1
 //down = 2
 int adjustedJoystickReading () {
-    int rawReading = (map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500));
+    
+    return ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) > JOYSTICK_INCRECMENT_VAL ? 0 : ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) < JOYSTICK_DECREMENT_VAL ? 2 : 1));
 
-    if (rawReading > JOYSTICK_INCRECMENT_VAL) {     //up
-        return 0;
-    } else if (rawReading < JOYSTICK_DECREMENT_VAL) {      //down
-        return 2;
-    } else {    //neutral
-        return 1;
-    }
+    //int rawReading = (map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500));
+    // if (rawReading > JOYSTICK_INCRECMENT_VAL) {     //up
+    //     return 0;
+    // } else if (rawReading < JOYSTICK_DECREMENT_VAL) {      //down
+    //     return 2;
+    // } else {    //neutral
+    //     return 1;
+    // }
 }
 
+//switch between the various modes
 void toggleFireModes () {
     int joystickReading = adjustedJoystickReading();
+    //joystick debouncing
     if ((lastJoystickReading != joystickReading) && (millis() >= lastTime + debounceDelay)) {   //make sure joystick actually moved and check once every 50 milis
         if (joystickReading == 0) {     //up
             fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
@@ -79,9 +83,10 @@ void toggleFireModes () {
     lastJoystickReading = joystickReading;
 }
 
+//when dart fired
 void fire() {   
     if ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ){
-        numOfDartsFired++;
+        numOfDartsFired++;  //keep track of how may darts fired
     }
 }
 
