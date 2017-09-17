@@ -97,8 +97,3 @@ void selectFire () {
         }
     }
 }
-
-#define SAFETY 0
-#define SINGLE_FIRE 1
-#define BURST_FIRE 2
-#define FULL_AUTO 3
