@@ -80,8 +80,7 @@ void toggleFireModes () {
 }
 
 void fire() {   
-    trigger.read();
-    if (trigger.isPressed() || (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ){
+    if ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ){
         numOfDartsFired++;
     }
 }
