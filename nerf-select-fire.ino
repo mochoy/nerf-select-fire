@@ -20,14 +20,14 @@
 #define FULL_AUTO 3
 
 //keep track of fire modes
-int fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
+byte fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 
 //keep track of debouncing joystick
 int lastJoystickReading, debounceDelay = 50;
 double lastTime; 
 
 //keep track of how many darts fire
-int numOfDartsFired = 0;
+byte numOfDartsFired = 0;
 
 Button trigger (TRIGGER_PIN, true, false, 20);    
 
