@@ -1,4 +1,3 @@
-#include <SoftwareSerial.h>
 #include <Button.h>
 
 //pins
@@ -32,10 +31,7 @@ int numOfDartsFired = 0;
 
 Button trigger (TRIGGER_PIN, true, false, 20);    
 
-void setup () {
-    Serial.begin(9600);
-    
-
+void setup () {    
     //setup pin for motor control
     pinMode(MOTOR_OUTPUT_PIN, OUTPUT);
     digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //make sure motor is off
@@ -53,9 +49,9 @@ void toggleFireModes () {
 
     //joystick debouncing
     if ((lastJoystickReading != joystickReading) && (millis() >= lastTime + debounceDelay)) {   //make sure joystick actually moved and check once every 50 milis
-        if (joystickReading == 0) {     //up
+        if (joystickReading == 0) {     // joystick moved up
             fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
-        } else if (joystickReading == 2) {      //down
+        } else if (joystickReading == 2) {      // joystick moved dowm
             fireMode = ((fireMode == 0) ? 3 : fireMode - 1);    //decrement fireMode
         } 
 
