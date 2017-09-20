@@ -51,7 +51,7 @@ void loop () {
 //switch between the various modes
 void toggleFireModes () {
     dartCountingSwitch.read();
-    int joystickReading = (((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) || dartCountingSwitch.isPressed()) > JOYSTICK_INCRECMENT_VAL ? 0 : ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) < JOYSTICK_DECREMENT_VAL ? 2 : 1));   //up = 0, neutral/middle = 1, down = 2
+    int joystickReading = ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) > JOYSTICK_INCRECMENT_VAL ? 0 : ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) < JOYSTICK_DECREMENT_VAL ? 2 : 1));   //up = 0, neutral/middle = 1, down = 2
 
     //joystick debouncing
     if ((lastJoystickReading != joystickReading) && (millis() >= lastTime + debounceDelay)) {   //make sure joystick actually moved and check once every 50 milis
@@ -69,7 +69,7 @@ void toggleFireModes () {
 
 //when dart fired
 void fire() { 
-    numOfDartsFired += ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ? 1 : 0);  
+    numOfDartsFired += (((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP)  || dartCountingSwitch.isPressed()) ? 1 : 0);  
 }
 
 //do all the fancy select fire stuff
@@ -80,12 +80,13 @@ void selectFire () {
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
             Serial.println("Safety!!");
         } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
-            if (((fireMode == SINGLE_FIRE) ? 1 : 3) <= numOfDartsFired) {       
+            if (((fireMode == SINGLE_FIRE) ? 1 : 3) >= numOfDartsFired) {       
                 digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
             } else {
                 digitalWrite(MOTOR_OUTPUT_PIN, LOW);
             }
             Serial.println("Burst!!");
+            Serial.println(numOfDartsFired);
         } else if (fireMode == FULL_AUTO) {     //if full auto, turn on motor
             digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
             Serial.println("Full Auto!!");
@@ -95,7 +96,7 @@ void selectFire () {
         if (fireMode == FULL_AUTO || fireMode == SAFETY) {
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
         } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
-            if (((fireMode == SINGLE_FIRE) ? 1 : 3) >= numOfDartsFired) {      //if can stop firing, because already fired 1 or 3 darts
+            if (((fireMode == SINGLE_FIRE) ? 1 : 3) <= numOfDartsFired) {      //if can stop firing, because already fired 1 or 3 darts
                 digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //turn off motor
                 numOfDartsFired = 0;                        //reset numOfDarts fired so it can fire again on next trigger pull
             } else {        //if still needs to fire, because havent fired 1 or 3 darts
