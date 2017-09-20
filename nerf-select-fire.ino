@@ -8,6 +8,11 @@
 #define DART_COUNTER_SWITCH_PIN 4   //digital
 #define MOTOR_OUTPUT_PIN 3          //digital PWM
 
+//for buttons/switches
+#define PULLUP true        
+#define INVERT true      
+#define DEBOUNCE_MS 20 
+
 //"trip" values for joystick
 #define JOYSTICK_INCRECMENT_VAL 490
 #define JOYSTICK_DECREMENT_VAL 360
@@ -34,8 +39,8 @@ byte numOfDartsFired = 0;
 //know when can shoot, based on if trigger pulled. Used to help with burst cycles.
 bool canTriggerBePulledAgain = true;
 
-Button trigger (TRIGGER_PIN, true, true, 20);    
-Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, true, true, 20);
+Button trigger (TRIGGER_PIN, PULLUP, INVERT, DEBOUNCE_MS);    
+Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS);
 
 void setup () {   
     Serial.begin(9600);
@@ -107,12 +112,12 @@ void selectFire () {
                 digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //turn off motor
                 numOfDartsFired = 0;                        //reset numOfDarts fired so it can fire again on next trigger pull
                 canTriggerBePulledAgain = true;
-            } else if (wasTriggerPulled) {        //if still needs to fire, because havent fired 1 or 3 darts
+            } else if (!canTriggerBePulledAgain) {        //if still needs to fire, because havent fired 1 or 3 darts
                 digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
                 canTriggerBePulledAgain = false;
                 Serial.println("still shooting");
             }
-            
+
             Serial.println((((fireMode == SINGLE_FIRE) ? 1 : 3) <= numOfDartsFired));
             Serial.print("Dart fired: ");
             Serial.println(numOfDartsFired);
