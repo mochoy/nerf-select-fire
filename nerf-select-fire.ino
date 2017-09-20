@@ -32,7 +32,7 @@ double lastTime;
 byte numOfDartsFired = 0;
 
 //know when can shoot, based on if trigger pulled. Used to help with burst cycles.
-bool wasTriggerPulled = false;
+bool canTriggerBePulledAgain = true;
 
 Button trigger (TRIGGER_PIN, true, true, 20);    
 Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, true, true, 20);
@@ -63,6 +63,7 @@ void toggleFireModes () {
             fireMode = ((fireMode == 0) ? 3 : fireMode - 1);    //decrement fireMode
         }
         numOfDartsFired = 0;        //reset num of darts fire so next time it loops back to 3rd burst/single shot, the dart firings don't get messed up 
+        canTriggerBePulledAgain = true;     //reset this since trigger can be pulled again. Dont wan't to mess up with the burst fires
 
         lastTime = millis();
     }
@@ -81,13 +82,13 @@ void selectFire () {
     if (trigger.read()) {      //check of trigger is pressed
         if (fireMode == SAFETY) {       //if safety, turn off motor
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-        } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
+        } else if (canTriggerBePulledAgain && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {
             if (((fireMode == SINGLE_FIRE) ? 1 : 3) >= numOfDartsFired) {       
                 digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
-                wasTriggerPulled = true;        //flag to know if i've pulled trigger
+                canTriggerBePulledAgain = false;        //flag to know if i've pulled trigger
             } else {
                 digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-                wasTriggerPulled = false;
+                canTriggerBePulledAgain = true;
             }
 
             // Serial.println("Burst!!");
@@ -105,11 +106,13 @@ void selectFire () {
                 Serial.println("Stop shooting");
                 digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //turn off motor
                 numOfDartsFired = 0;                        //reset numOfDarts fired so it can fire again on next trigger pull
-                wasTriggerPulled = false;
+                canTriggerBePulledAgain = true;
             } else if (wasTriggerPulled) {        //if still needs to fire, because havent fired 1 or 3 darts
                 digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
+                canTriggerBePulledAgain = false;
                 Serial.println("still shooting");
             }
+            
             Serial.println((((fireMode == SINGLE_FIRE) ? 1 : 3) <= numOfDartsFired));
             Serial.print("Dart fired: ");
             Serial.println(numOfDartsFired);
