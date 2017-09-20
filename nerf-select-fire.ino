@@ -1,4 +1,5 @@
 #include <Button.h>
+#include <SoftwareSerial.h>
 
 //pins
 #define IR_GATE_PIN 0               //analog
@@ -30,10 +31,12 @@ double lastTime;
 //keep track of how many darts fire
 byte numOfDartsFired = 0;
 
-Button trigger (TRIGGER_PIN, true, false, 20);    
-Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, true, false, 20);
+Button trigger (TRIGGER_PIN, true, true, 20);    
+Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, true, true, 20);
 
-void setup () {    
+void setup () {   
+    Serial.begin(9600);
+
     //setup pin for motor control
     pinMode(MOTOR_OUTPUT_PIN, OUTPUT);
     digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //make sure motor is off
@@ -71,17 +74,22 @@ void fire() {
 
 //do all the fancy select fire stuff
 void selectFire () {
+    Serial.println(trigger.read());
+
     if (trigger.read()) {      //check of trigger is pressed
         if (fireMode == SAFETY) {       //if safety, turn off motor
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
+            // Serial.println("Safety!!");
         } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
             if (((fireMode == SINGLE_FIRE) ? 1 : 3) <= numOfDartsFired) {       
                 digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
             } else {
                 digitalWrite(MOTOR_OUTPUT_PIN, LOW);
             }
+            // Serial.println("Burst!!");
         } else if (fireMode == FULL_AUTO) {     //if full auto, turn on motor
             digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
+            // Serial.println("Full Auto!!");
         }
     } else {    //trigger isn't pressed
         if (fireMode == SINGLE_FIRE || fireMode == SAFETY) {
