@@ -36,9 +36,6 @@ double lastTime;
 //keep track of how many darts fire
 byte dartsFired = 0;
 
-//check if burst cycle can reset (resets after firing 3 or 1 darts, dependig on the mode)
-bool canReset = false;
-
 //make sure checking for darts being fired. In some modes, the amount of darts being fired doesnt matter
 bool isCheckingForDartsFired = false;
 
@@ -96,7 +93,7 @@ void checkForDartsFired () {
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
     } else if (dartCountingSwitch.isPressed() && dartsFired >= dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-      canReset = true;
+      isCheckingForDartsFired = false;
     }
   }
 }
@@ -109,7 +106,6 @@ void selectFire () {
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
         } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
             isCheckingForDartsFired = true;
-            canReset = false;
         } else if (fireMode == FULL_AUTO) {     //if full auto, turn on motor
             digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
         }
@@ -120,10 +116,9 @@ void selectFire () {
 
         //check to see if mode is single shot or burst. 
         //If all darts haven't been fired yet when the trigger is let go of, then some darts still need to be fired to complete cycle    
-        } else if ( canReset && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) ) {     
+        } else if ( !isCheckingForDartsFired && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) ) {     
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
             dartsFired = 0;
-            canReset = false;
             isCheckingForDartsFired = false;
         }
     }
