@@ -80,20 +80,14 @@ void toggleFireModes () {
 }
 
 //when dart fired
-void fire() { 
-	if (isCheckingForDartsFired) {
-		dartCountingSwitch.read();
-		if ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) || dartCountingSwitch.wasPressed()) {
-			dartsFired ++;
-		}
-	}
-
-    // dartCountingSwitch.read();
-    // //detect if dart is fired based on IR gate or switc
-    // dartsFired += ( (isCheckingForDartsFired && 
-    // 	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
-    // 	 dartCountingSwitch.wasPressed()) )
-    // 	 ? 1 : 0);        
+void fire() {
+    dartCountingSwitch.read();
+    
+    //detect if dart is fired based on IR gate or switc
+    dartsFired += ( (isCheckingForDartsFired && 
+    	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
+    	 dartCountingSwitch.wasPressed()) )
+    	 ? 1 : 0);        
 }
 
 void checkForDartsFired () {
