@@ -34,10 +34,13 @@ int lastJoystickReading, debounceDelay = 50;
 double lastTime; 
 
 //keep track of how many darts fire
-byte numOfDartsFired = 0;
+byte dartsFired = 0;
 
-//know when can shoot, based on if trigger pulled. Used to help with burst cycles.
-bool canTriggerBePulledAgain = true;
+//check if burst cycle can reset (resets after firing 3 or 1 darts, dependig on the mode)
+bool canReset = false;
+
+//make sure checking for darts being fired. In some modes, the amount of darts being fired doesnt matter
+bool isCheckingForDartsFired = false;
 
 Button trigger (TRIGGER_PIN, PULLUP, INVERT, DEBOUNCE_MS);    
 Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS);
@@ -53,6 +56,7 @@ void setup () {
 void loop () {
     toggleFireModes();
     fire();
+    checkForDartsFired();
     selectFire();
 }
 
@@ -67,9 +71,8 @@ void toggleFireModes () {
         } else if (joystickReading == 2) {      // joystick moved dowm
             fireMode = ((fireMode == 0) ? 3 : fireMode - 1);    //decrement fireMode
         }
-        numOfDartsFired = 0;        //reset num of darts fire so next time it loops back to 3rd burst/single shot, the dart firings don't get messed up 
-        canTriggerBePulledAgain = true;     //reset this since trigger can be pulled again. Dont wan't to mess up with the burst fires
-
+        dartsFired = 0;        //reset num of darts fire so next time it loops back to 3rd burst/single shot, the dart firings don't get messed up 
+        Serial.println(fireMode);
         lastTime = millis();
     }
     
@@ -79,48 +82,44 @@ void toggleFireModes () {
 //when dart fired
 void fire() { 
     dartCountingSwitch.read();
-    numOfDartsFired += (((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) || dartCountingSwitch.isPressed()) ? 1 : 0);        //know dart is fired based on IR gate or switch
+    dartsFired += ( (isCheckingForDartsFired && ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) || dartCountingSwitch.wasPressed())) ? 1 : 0);        //know dart is fired based on IR gate or switch
+}
+
+void checkForDartsFired () {
+  if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
+    byte dartsToFire = (SINGLE_FIRE ? 1 : 3);
+    if (dartsFired < 3) {
+      digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
+    } else if (dartsFired >= 3) {
+      digitalWrite(MOTOR_OUTPUT_PIN, LOW);
+      canReset = true;
+    }
+  }
 }
 
 //do all the fancy select fire stuff
 void selectFire () {
-    if (trigger.read()) {      //check of trigger is pressed
+    trigger.read();
+    if (trigger.isPressed()) {      //check of trigger is pressed
         if (fireMode == SAFETY) {       //if safety, turn off motor
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-        } else if (canTriggerBePulledAgain && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {
-            if (((fireMode == SINGLE_FIRE) ? 1 : 3) >= numOfDartsFired) {       
-                digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
-                canTriggerBePulledAgain = false;        //flag to know if i've pulled trigger
-            } else {
-                digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-                canTriggerBePulledAgain = true;
-            }
-
-            // Serial.println("Burst!!");
-            // Serial.print("Dart fired: ");
-            // Serial.println(numOfDartsFired);
-
+        } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
+            isCheckingForDartsFired = true;
+            canReset = false;
         } else if (fireMode == FULL_AUTO) {     //if full auto, turn on motor
             digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
         }
-    } else if (!trigger.read())  {    //trigger isn't pressed
+    } else if (!trigger.isPressed()) {    //trigger isn't pressed
         if (fireMode == FULL_AUTO || fireMode == SAFETY) {
-            digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //turn off motor if the mode is safety or full auto. Full auto only shoots when trigger is pulled
-        } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {     //check to see if mode is single shot or burst. If all darts haven't been fired yet when the trigger is let go of, then some darts still need to be fired to complete cycle
-            if (((fireMode == SINGLE_FIRE) ? 1 : 3) <= numOfDartsFired) {      //if can stop firing, because already fired 1 or 3 darts
-                Serial.println("Stop shooting");
-                digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //turn off motor
-                numOfDartsFired = 0;                        //reset numOfDarts fired so it can fire again on next trigger pull
-                canTriggerBePulledAgain = true;
-            } else if (!canTriggerBePulledAgain) {        //if still needs to fire, because havent fired 1 or 3 darts
-                digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
-                canTriggerBePulledAgain = false;
-                Serial.println("still shooting");
-            }
+            //turn off motor if the mode is safety or full auto. Full auto only shoots when trigger is pulled
+            digitalWrite(MOTOR_OUTPUT_PIN, LOW);
 
-            Serial.println((((fireMode == SINGLE_FIRE) ? 1 : 3) <= numOfDartsFired));
-            Serial.print("Dart fired: ");
-            Serial.println(numOfDartsFired);
+        //check to see if mode is single shot or burst. 
+        //If all darts haven't been fired yet when the trigger is let go of, then some darts still need to be fired to complete cycle    
+        } else if ( canReset && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) ) {     
+            digitalWrite(MOTOR_OUTPUT_PIN, LOW);
+            dartsFired = 0;
+            canReset = false;
         }
     }
 }
