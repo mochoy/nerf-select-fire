@@ -54,7 +54,7 @@ void setup () {
 }
 
 void loop () {
-    toggleFireModes();
+    // toggleFireModes();
     fire();
     checkForDartsFired();
     selectFire();
@@ -81,29 +81,29 @@ void toggleFireModes () {
 
 //when dart fired
 void fire() { 
-	// if (isCheckingForDartsFired) {
-	// 	dartCountingSwitch.read();
-	// 	if ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) || dartCountingSwitch.wasPressed()) {
-	// 		dartsFired ++;
-	// 	}
-	// }
+	if (isCheckingForDartsFired) {
+		dartCountingSwitch.read();
+		if ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) || dartCountingSwitch.wasPressed()) {
+			dartsFired ++;
+		}
+	}
 
-    dartCountingSwitch.read();
-    //detect if dart is fired based on IR gate or switc
-    dartsFired = ( (isCheckingForDartsFired && 
-    	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
-    	 dartCountingSwitch.wasPressed()) )
-    	 ? 1 : 0);        
+    // dartCountingSwitch.read();
+    // //detect if dart is fired based on IR gate or switc
+    // dartsFired += ( (isCheckingForDartsFired && 
+    // 	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
+    // 	 dartCountingSwitch.wasPressed()) )
+    // 	 ? 1 : 0);        
 }
 
 void checkForDartsFired () {
   if (isCheckingForDartsFired && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {
   	Serial.println(dartsFired);
 
-    byte dartsToFire = (SINGLE_FIRE ? 1 : 3);
+    byte dartsToFire = (fireMode == SINGLE_FIRE ? 1 : 3);
     if (dartsFired < dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
-    } else if (dartCountingSwitch.isPressed && dartsFired >= dartsToFire) {
+    } else if (dartCountingSwitch.isPressed() && dartsFired >= dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, LOW);
       canReset = true;
     }
