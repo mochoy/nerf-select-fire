@@ -1,109 +1,109 @@
-#include <Button.h>
+/*----------------------------------------------------------------------*
+ * nerf-select-fire v1.0                        			                  *
+ * Monty Choy, Nov 2017													                        *
+ *                                                                      *
+ * Arduino sketch for saftey, single shot, three round burst, and full  *
+ * auto. Schematics can also be found in the repository. 								*
+ *----------------------------------------------------------------------*/
+
+#include <Button.h>																											//library to deal with buttons easier
+
 //pins
-#define IR_GATE_PIN 0
-#define TOGGLE_FIRE_MODES_BTN_PIN 7 //digital
-#define TRIGGER_PIN 11              //digital
-#define DART_COUNTER_SWITCH_PIN 4   //digital
-#define MOTOR_OUTPUT_PIN 3          //digital PWM
+#define IR_GATE_PIN 0																											//analog input
+#define TOGGLE_FIRE_MODES_BTN_PIN 7 																			//digital inpit
+#define TRIGGER_PIN 11              																			//digital input
+#define DART_COUNTER_SWITCH_PIN 4   																			//digital input
+#define MOTOR_OUTPUT_PIN 3          																			//digital output
 
 //for buttons/switches
-#define PULLUP true        
-#define INVERT true      
-#define DEBOUNCE_MS 20 
+#define PULLUP true        																								//internal pullup, so we dont need to wire resistor
+#define INVERT true      																									//invert required for proper readings with pullup
+#define DEBOUNCE_MS 20 																										//check btn time every 20ms
 
-//'trip' value for IR gate
-#define IR_GATE_TRIP 90
+#define IR_GATE_TRIP 90																										//'trip' value for IR gate					
 
-//code for fire modes
-#define SAFETY 0
-#define SINGLE_FIRE 1
-#define BURST_FIRE 2
-#define FULL_AUTO 3
+//code for fire modes. 4 modes total
+#define SAFETY 0																													//SAFTEY is mode 0
+#define SINGLE_FIRE 1																											//singe fire is mode 1
+#define BURST_FIRE 2																											//burst fire is mode 2
+#define FULL_AUTO 3																												//full auto is mode 3
 
-//keep track of fire modes
-byte fireMode = 2;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 
-//keep track of how many darts fire
-byte dartsFired = 0;
+byte fireMode = 0;   																											//keep track of fire modes. 
+byte dartsFired = 0;																											//keep track of how many darts fire
+bool isCheckingForDartsFired = false;																			//some modes need to check if a certain number of darts to fire
 
-//make sure checking for darts being fired. In some modes, the amount of darts being fired doesnt matter
-bool isCheckingForDartsFired = false;
-
-Button trigger (TRIGGER_PIN, PULLUP, INVERT, DEBOUNCE_MS);    
-Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS);
-Button toggleFireModesBtn (TOGGLE_FIRE_MODES_BTN_PIN, PULLUP, INVERT, DEBOUNCE_MS);
+Button trigger (TRIGGER_PIN, PULLUP, INVERT, DEBOUNCE_MS);														//trigger button, using the library   
+Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS);			//dart counting button, using the library
+Button toggleFireModesBtn (TOGGLE_FIRE_MODES_BTN_PIN, PULLUP, INVERT, DEBOUNCE_MS);		//toggle fire modes button, using the librarys
 
 void setup () {   
-    //setup pin for motor control
-    pinMode(MOTOR_OUTPUT_PIN, OUTPUT);
-    digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //make sure motor is off
-    resetDartsFired();
+    pinMode(MOTOR_OUTPUT_PIN, OUTPUT);																		//set motor output pin to an output pin
+    digitalWrite(MOTOR_OUTPUT_PIN, LOW);        													//make sure motor is off
+    resetDartsFired();																										//reset all dart firing values so they dont get messed up later
 }
 
 void loop () {
-    toggleFireModes();
-    fire();
-    checkForDartsFired();
-    selectFire();
+    toggleFireModes();																										//constantly check for changes in firemodes
+    fire();																																//constantly check if dart is fired
+    checkForDartsFired();																									//do stuff if dart is fired
+    selectFire();																													//do fancy select-fire stuff
 }
 
 //switch between the various modes
 void toggleFireModes () {
-	toggleFireModesBtn.read();
-	if (toggleFireModesBtn.wasPressed()) {
-		fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
-	  resetDartsFired();
+	toggleFireModesBtn.read();																							//read button
+	if (toggleFireModesBtn.wasPressed()) {																	//check if it was pressed
+		fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    									//increment fireMode
+	  resetDartsFired();																										//reset darts fired stuff so it doesn't get messed up later
 	}
 }
 
 //when dart fired
 void fire() {
-    dartCountingSwitch.read();
-
-    //detect if dart is fired based on IR gate or switc
-    dartsFired += ( (isCheckingForDartsFired && 
-    	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
-    	 dartCountingSwitch.wasPressed()) )
-    	 ? 1 : 0);        
+  dartCountingSwitch.read();																							//read button
+  dartsFired += ( (isCheckingForDartsFired && 														//detect and keep track if dart is fired through
+  	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||		//switch or IR gate. 
+  	 dartCountingSwitch.wasPressed()) )
+  	 ? 1 : 0);        
 }
 
-void checkForDartsFired () {
-  if (isCheckingForDartsFired && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {
-    byte dartsToFire = (fireMode == SINGLE_FIRE ? 1 : 3);
-    if (dartsFired < dartsToFire) {
-      digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
-    } else if (dartCountingSwitch.isPressed() && dartsFired >= dartsToFire) {
-      resetDartsFired();
+void checkForDartsFired () {						
+  if (isCheckingForDartsFired && 																					//if checking for darts being fired. Not all 
+   (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {									// modesneed to check if a dart is fired
+    byte dartsToFire = (fireMode == SINGLE_FIRE ? 1 : 3);									//determine max amounts of darts to be fired
+    if (dartsFired < dartsToFire) {																				//if can still fire (hasn't reached threshold of
+      digitalWrite(MOTOR_OUTPUT_PIN, HIGH);																//how many darts can fire), power pusher motor
+    } else if (dartCountingSwitch.isPressed() && 													//if can't fire anymore darts and pusher 
+     dartsFired >= dartsToFire) {																					//retracted
+      resetDartsFired();																									//Reset darts fired stuff so it can happen again
     }
   }
 }
 
 //do all the fancy select fire stuff
 void selectFire () {
-    trigger.read();
-    if (trigger.isPressed()) {      //check of trigger is pressed
-        if (fireMode == SAFETY) {       //if safety, turn off motor
-            digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-        } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
-            isCheckingForDartsFired = true;
-        } else if (fireMode == FULL_AUTO) {     //if full auto, turn on motor
-            digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
+    trigger.read();																												//read trigger
+    if (trigger.isPressed()) {      																			//check of trigger is pressed
+        if (fireMode == SAFETY) {       																	//if in safety mode, turn off motor
+            digitalWrite(MOTOR_OUTPUT_PIN, LOW);													
+        } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {		//if in burst fire or single shot mode
+            isCheckingForDartsFired = true;																//allow for darts to be fired, handled elsewhere
+        } else if (fireMode == FULL_AUTO) {     													//if full auto turn on motor
+            digitalWrite(MOTOR_OUTPUT_PIN, HIGH);													
         }
-    } else if (!trigger.isPressed()) {    //trigger isn't pressed
-        if (fireMode == FULL_AUTO || fireMode == SAFETY) {
-            //turn off motor if the mode is safety or full auto. Full auto only shoots when trigger is pulled
-            digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-
-        //check to see if mode is single shot or burst. 
-        //If all darts haven't been fired yet when the trigger is let go of, then some darts still need to be fired to complete cycle    
-        } else if ( !isCheckingForDartsFired && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) ) {     
-        	resetDartsFired();
-        }
+    } else if (!trigger.isPressed()) {    																//if trigger isn't pressed
+        if (fireMode == FULL_AUTO || fireMode == SAFETY) {								//if firemode is fullauto or safety, turn off motor
+            digitalWrite(MOTOR_OUTPUT_PIN, LOW);													
+        } else if ( !isCheckingForDartsFired 															//if all darts fired
+         && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) ) {     	//and in burstfire 
+        	resetDartsFired();																							//reset darts fired stuff
+        }		
     }
 }
 
 void resetDartsFired () {
-	digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-	dartsFired = 0;
-	isCheckingForDartsFired = false;
+	digitalWrite(MOTOR_OUTPUT_PIN, LOW);																		//turn of motor
+	dartsFired = 0;																													//darts fired set to 0
+	isCheckingForDartsFired = false;																				//no longer checking if darts are being fired
 }
