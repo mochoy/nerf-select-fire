@@ -3,8 +3,8 @@
 
 //pins
 #define IR_GATE_PIN 0               //analog
-#define JOYSTICK_INPUT_PIN 2        //analog
-#define TRIGGER_PIN 2               //digital
+#define JOYSTICK_INPUT_PIN 6        //analog
+#define TRIGGER_PIN 11              //digital
 #define DART_COUNTER_SWITCH_PIN 4   //digital
 #define MOTOR_OUTPUT_PIN 3          //digital PWM
 
