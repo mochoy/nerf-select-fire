@@ -37,6 +37,7 @@ void setup () {
     //setup pin for motor control
     pinMode(MOTOR_OUTPUT_PIN, OUTPUT);
     digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //make sure motor is off
+    resetDartsFired();
 }
 
 void loop () {
