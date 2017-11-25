@@ -1,2 +1,2 @@
 # nerf-select-fire
-Arduino sketch adding select-fire control to full-automatic NERF blasters.
+Arduino sketch for saftey, single shot, three round burst, and full auto. Schematics can also be found in the repository.
