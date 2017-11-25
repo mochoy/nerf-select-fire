@@ -89,7 +89,7 @@ void fire() {
 	// }
 
     dartCountingSwitch.read();
-    detect if dart is fired based on IR gate or switc
+    //detect if dart is fired based on IR gate or switc
     dartsFired = ( (isCheckingForDartsFired && 
     	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
     	 dartCountingSwitch.wasPressed()) )
@@ -103,7 +103,7 @@ void checkForDartsFired () {
     byte dartsToFire = (SINGLE_FIRE ? 1 : 3);
     if (dartsFired < dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
-    } else if (dartsFired >= dartsToFire) {
+    } else if (dartCountingSwitch.isPressed && dartsFired >= dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, LOW);
       canReset = true;
     }
