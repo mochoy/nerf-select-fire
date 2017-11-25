@@ -133,6 +133,7 @@ void selectFire () {
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);
             dartsFired = 0;
             canReset = false;
+            isCheckingForDartsFired = false;
         }
     }
 }
