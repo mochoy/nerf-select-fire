@@ -55,9 +55,7 @@ void toggleFireModes () {
 	toggleFireModesBtn.read();
 	if (toggleFireModesBtn.wasPressed()) {
 		fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
-	  dartsFired = 0;        //reset num of darts fire so next time it loops back to 3rd burst/single shot, the dart firings don't get messed up 
-		digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-		isCheckingForDartsFired = false;
+	  resetDartsFired();
 	}
 }
 
@@ -78,8 +76,7 @@ void checkForDartsFired () {
     if (dartsFired < dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
     } else if (dartCountingSwitch.isPressed() && dartsFired >= dartsToFire) {
-      digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-      isCheckingForDartsFired = false;
+      resetDartsFired();
     }
   }
 }
@@ -103,9 +100,13 @@ void selectFire () {
         //check to see if mode is single shot or burst. 
         //If all darts haven't been fired yet when the trigger is let go of, then some darts still need to be fired to complete cycle    
         } else if ( !isCheckingForDartsFired && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) ) {     
-            digitalWrite(MOTOR_OUTPUT_PIN, LOW);
-            dartsFired = 0;
-            isCheckingForDartsFired = false;
+        	resetDartsFired();
         }
     }
+}
+
+void resetDartsFired () {
+	digitalWrite(MOTOR_OUTPUT_PIN, LOW);
+	dartsFired = 0;
+	isCheckingForDartsFired = false;
 }
