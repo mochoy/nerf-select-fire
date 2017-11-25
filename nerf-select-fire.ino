@@ -2,8 +2,8 @@
 #include <SoftwareSerial.h>
 
 //pins
-#define IR_GATE_PIN 0               //analog
-#define JOYSTICK_INPUT_PIN 6        //analog
+#define IR_GATE_PIN 0
+#define TOGGLE_FIRE_MODES_BTN_PIN 7 //digital
 #define TRIGGER_PIN 11              //digital
 #define DART_COUNTER_SWITCH_PIN 4   //digital
 #define MOTOR_OUTPUT_PIN 3          //digital PWM
@@ -12,10 +12,6 @@
 #define PULLUP true        
 #define INVERT true      
 #define DEBOUNCE_MS 20 
-
-//"trip" values for joystick
-#define JOYSTICK_INCRECMENT_VAL 490
-#define JOYSTICK_DECREMENT_VAL 360
 
 //'trip' value for IR gate
 #define IR_GATE_TRIP 90
@@ -29,10 +25,6 @@
 //keep track of fire modes
 byte fireMode = 2;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 
-//keep track of debouncing joystick
-int lastJoystickReading, debounceDelay = 50;
-double lastTime; 
-
 //keep track of how many darts fire
 byte dartsFired = 0;
 
@@ -41,6 +33,7 @@ bool isCheckingForDartsFired = false;
 
 Button trigger (TRIGGER_PIN, PULLUP, INVERT, DEBOUNCE_MS);    
 Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS);
+Button toggleFireModesBtn (TOGGLE_FIRE_MODES_BTN_PIN, PULLUP, INVERT, DEBOUNCE_MS);
 
 void setup () {   
     Serial.begin(9600);
@@ -51,7 +44,7 @@ void setup () {
 }
 
 void loop () {
-    // toggleFireModes();
+    toggleFireModes();
     fire();
     checkForDartsFired();
     selectFire();
@@ -59,20 +52,13 @@ void loop () {
 
 //switch between the various modes
 void toggleFireModes () {
-    int joystickReading = ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) > JOYSTICK_INCRECMENT_VAL ? 0 : ((map(analogRead(JOYSTICK_INPUT_PIN), 0, 1023, 0, 500)) < JOYSTICK_DECREMENT_VAL ? 2 : 1));   //up = 0, neutral/middle = 1, down = 2
-
-    //joystick debouncing
-    if ((lastJoystickReading != joystickReading) && (millis() >= lastTime + debounceDelay)) {   //make sure joystick actually moved and check once every 50 milis
-        if (joystickReading == 0) {     // joystick moved up
-            fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
-        } else if (joystickReading == 2) {      // joystick moved dowm
-            fireMode = ((fireMode == 0) ? 3 : fireMode - 1);    //decrement fireMode
-        }
-        dartsFired = 0;        //reset num of darts fire so next time it loops back to 3rd burst/single shot, the dart firings don't get messed up 
-        lastTime = millis();
-    }
-    
-    lastJoystickReading = joystickReading;
+	toggleFireModesBtn.read();
+	if (toggleFireModesBtn.wasPressed()) {
+		fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    //increment fireMode
+	  dartsFired = 0;        //reset num of darts fire so next time it loops back to 3rd burst/single shot, the dart firings don't get messed up 
+		digitalWrite(MOTOR_OUTPUT_PIN, LOW);
+		isCheckingForDartsFired = false;
+	}
 }
 
 //when dart fired
