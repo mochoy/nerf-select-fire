@@ -72,7 +72,6 @@ void toggleFireModes () {
             fireMode = ((fireMode == 0) ? 3 : fireMode - 1);    //decrement fireMode
         }
         dartsFired = 0;        //reset num of darts fire so next time it loops back to 3rd burst/single shot, the dart firings don't get messed up 
-        Serial.println(fireMode);
         lastTime = millis();
     }
     
@@ -82,7 +81,7 @@ void toggleFireModes () {
 //when dart fired
 void fire() {
     dartCountingSwitch.read();
-    
+
     //detect if dart is fired based on IR gate or switc
     dartsFired += ( (isCheckingForDartsFired && 
     	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
@@ -92,8 +91,6 @@ void fire() {
 
 void checkForDartsFired () {
   if (isCheckingForDartsFired && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {
-  	Serial.println(dartsFired);
-
     byte dartsToFire = (fireMode == SINGLE_FIRE ? 1 : 3);
     if (dartsFired < dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
