@@ -27,7 +27,7 @@
 #define FULL_AUTO 3
 
 //keep track of fire modes
-byte fireMode = 0;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
+byte fireMode = 2;   //0 = safe, 1 = single shot, 2 = burst, 3 = full auto
 
 //keep track of debouncing joystick
 int lastJoystickReading, debounceDelay = 50;
@@ -81,16 +81,29 @@ void toggleFireModes () {
 
 //when dart fired
 void fire() { 
+	// if (isCheckingForDartsFired) {
+	// 	dartCountingSwitch.read();
+	// 	if ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) || dartCountingSwitch.wasPressed()) {
+	// 		dartsFired ++;
+	// 	}
+	// }
+
     dartCountingSwitch.read();
-    dartsFired += ( (isCheckingForDartsFired && ((map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) || dartCountingSwitch.wasPressed())) ? 1 : 0);        //know dart is fired based on IR gate or switch
+    detect if dart is fired based on IR gate or switc
+    dartsFired = ( (isCheckingForDartsFired && 
+    	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||
+    	 dartCountingSwitch.wasPressed()) )
+    	 ? 1 : 0);        
 }
 
 void checkForDartsFired () {
-  if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {
+  if (isCheckingForDartsFired && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {
+  	Serial.println(dartsFired);
+
     byte dartsToFire = (SINGLE_FIRE ? 1 : 3);
-    if (dartsFired < 3) {
+    if (dartsFired < dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
-    } else if (dartsFired >= 3) {
+    } else if (dartsFired >= dartsToFire) {
       digitalWrite(MOTOR_OUTPUT_PIN, LOW);
       canReset = true;
     }
