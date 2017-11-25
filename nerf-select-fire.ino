@@ -1,6 +1,4 @@
 #include <Button.h>
-#include <SoftwareSerial.h>
-
 //pins
 #define IR_GATE_PIN 0
 #define TOGGLE_FIRE_MODES_BTN_PIN 7 //digital
@@ -36,8 +34,6 @@ Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS)
 Button toggleFireModesBtn (TOGGLE_FIRE_MODES_BTN_PIN, PULLUP, INVERT, DEBOUNCE_MS);
 
 void setup () {   
-    Serial.begin(9600);
-
     //setup pin for motor control
     pinMode(MOTOR_OUTPUT_PIN, OUTPUT);
     digitalWrite(MOTOR_OUTPUT_PIN, LOW);        //make sure motor is off
