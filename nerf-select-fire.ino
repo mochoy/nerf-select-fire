@@ -10,10 +10,14 @@
 
 //pins
 #define IR_GATE_PIN 0																											//analog input
-#define TOGGLE_FIRE_MODES_BTN_PIN 7 																			//digital inpit
 #define TRIGGER_PIN 11              																			//digital input
 #define DART_COUNTER_SWITCH_PIN 4   																			//digital input
 #define MOTOR_OUTPUT_PIN 3          																			//digital output
+#define JOYSTICK_X_PIN 2
+#define JOYSTICK_Y_PIN 3
+
+#define MAPPED_HIGH_JOYSTICK_TRIP 490 
+#define MAPPED_LOW_JOYSTICK_TRIP 360
 
 //for buttons/switches
 #define PULLUP true        																								//internal pullup, so we dont need to wire resistor
@@ -35,7 +39,6 @@ bool isCheckingForDartsFired = false;																			//some modes need to che
 
 Button trigger (TRIGGER_PIN, PULLUP, INVERT, DEBOUNCE_MS);														//trigger button, using the library   
 Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS);			//dart counting button, using the library
-Button toggleFireModesBtn (TOGGLE_FIRE_MODES_BTN_PIN, PULLUP, INVERT, DEBOUNCE_MS);		//toggle fire modes button, using the librarys
 
 void setup () {   
     pinMode(MOTOR_OUTPUT_PIN, OUTPUT);																		//set motor output pin to an output pin
@@ -52,11 +55,46 @@ void loop () {
 
 //switch between the various modes
 void toggleFireModes () {
-	toggleFireModesBtn.read();																							//read button
-	if (toggleFireModesBtn.wasPressed()) {																	//check if it was pressed
-		fireMode = ((fireMode == 3) ? 0 : fireMode + 1);    									//increment fireMode
-	  resetDartsFired();																										//reset darts fired stuff so it doesn't get messed up later
-	}
+  bool hasStateChanged = false;
+  
+  int joystickXHelped = joystickHelper(map(analogRead(JOYSTICK_X_PIN), 0, 1023, 0, 500));
+  if (joystickXHelped > 0) {
+    if (joystickXHelped == 1) {
+      fireMode = 0;
+    } else if (joystickXHelped == 2) {
+      fireMode = 1;
+    }
+
+    hasStateChanged = true;
+  }
+
+  int joystickYHelped = joystickHelper(map(analogRead(JOYSTICK_Y_PIN), 0, 1023, 0, 500));
+  if (joystickYHelped > 0) {
+    if (joystickYHelped == 1) {
+      fireMode = 2;
+    } else if (joystickYHelped == 2) {
+      fireMode = 3;
+    }
+
+    hasStateChanged = true;
+  }
+
+  if (hasStateChanged) {
+    resetDartsFired();																										//reset darts fired stuff so it doesn't get messed up later
+    updateDisplay();
+  }
+}
+
+//method to check if joystick moved up or down
+//returns 0 if no move, 1 if up, 2 if down
+int joystickHelper (int reading) {
+  if (reading > MAPPED_HIGH_JOYSTICK_TRIP) {
+    return 1;
+  } else if (reading < MAPPED_LOW_JOYSTICK_TRIP) {
+    return 2;
+  } else {
+    return 0;
+  }
 }
 
 //when dart fired
