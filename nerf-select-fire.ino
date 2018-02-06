@@ -63,7 +63,7 @@ void toggleFireModes () {
 void fire() {
   dartCountingSwitch.read();																							//read button
   dartsFired += ( (isCheckingForDartsFired && 														//detect and keep track if dart is fired through
-  	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||		//switch or IR gate. 
+  	( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||		    //switch or IR gate. 
   	 dartCountingSwitch.wasPressed()) )
   	 ? 1 : 0);        
 }
