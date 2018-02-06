@@ -81,7 +81,6 @@ void toggleFireModes () {
 
   if (hasStateChanged) {
     resetDartsFired();																										//reset darts fired stuff so it doesn't get messed up later
-    updateDisplay();
   }
 }
 
