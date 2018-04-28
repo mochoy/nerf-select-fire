@@ -64,11 +64,11 @@ void toggleFireModes () {
   if (lastFireMode != 0 && analogRead(JOYSTICK_X_PIN) > 800) {   //safety
     lastFireMode = fireMode = 0;
     hasStateChanged = true;
-  } else if (lastFireMode != 1 && analogRead(JOYSTICK_X_PIN) < 100) {  //single
-    lastFireMode = fireMode = 1;
-    hasStateChanged = true;
-  } else if (lastFireMode != 2 && analogRead(JOYSTICK_Y_PIN) > 900) {  //burst 
+  } else if (lastFireMode != 2 && analogRead(JOYSTICK_X_PIN) < 100) {  //burst
     lastFireMode = fireMode = 2;
+    hasStateChanged = true;
+  } else if (lastFireMode != 1 && analogRead(JOYSTICK_Y_PIN) > 900) {  //single shot 
+    lastFireMode = fireMode = 1;
     hasStateChanged = true;
   } else if (lastFireMode != 3 && analogRead(JOYSTICK_Y_PIN) < 100) {  //full auto
     lastFireMode = fireMode = 3;
