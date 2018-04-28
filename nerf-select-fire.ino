@@ -7,6 +7,7 @@
  *----------------------------------------------------------------------*/
 
 #include <Button.h>                                                     //library to deal with buttons easier
+#include <SoftwareSerial.h>
 
 //pins
 #define IR_GATE_PIN 0                                                     //analog input
@@ -42,6 +43,7 @@ Button trigger (TRIGGER_PIN, PULLUP, INVERT, DEBOUNCE_MS);                      
 Button dartCountingSwitch (DART_COUNTER_SWITCH_PIN, PULLUP, INVERT, DEBOUNCE_MS);     //dart counting button, using the library
 
 void setup () {   
+    Serial.begin(9600);
     pinMode(MOTOR_OUTPUT_PIN, OUTPUT);                                    //set motor output pin to an output pin
     digitalWrite(MOTOR_OUTPUT_PIN, LOW);                                  //make sure motor is off
     resetDartsFired();                                                    //reset all dart firing values so they dont get messed up later
@@ -78,36 +80,28 @@ void toggleFireModes () {
   }
 }
 
-//method to check if joystick moved up or down
-//returns 0 if no move, 1 if up, 2 if down
-int joystickHelper (int reading) {
-  if (reading > MAPPED_HIGH_JOYSTICK_TRIP) {
-    return 1;
-  } else if (reading < MAPPED_LOW_JOYSTICK_TRIP) {
-    return 2;
-  } else {
-    return 0;
-  }
-}
-
 //when dart fired
 void fire() {
   dartCountingSwitch.read();                                              //read button
-  dartsFired += ( (isCheckingForDartsFired &&                             //detect and keep track if dart is fired through
-    ( (map(analogRead(IR_GATE_PIN), 0, 1023, 0, 100) > IR_GATE_TRIP) ||       //switch or IR gate. 
-     dartCountingSwitch.wasPressed()) )
-     ? 1 : 0);        
+  if (dartCountingSwitch.wasPressed()) {
+    dartsFired++;
+  }
 }
 
-void checkForDartsFired () {            
+void checkForDartsFired () {      
+  dartCountingSwitch.read();      
   if (isCheckingForDartsFired &&                                          //if checking for darts being fired. Not all 
    (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {                 // modesneed to check if a dart is fired
     byte dartsToFire = (fireMode == SINGLE_FIRE ? 1 : 3);                 //determine max amounts of darts to be fired
     if (dartsFired < dartsToFire) {                                       //if can still fire (hasn't reached threshold of
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);                               //how many darts can fire), power pusher motor
+      Serial.println("shootin!");
     } else if (dartCountingSwitch.isPressed() &&                          //if can't fire anymore darts and pusher 
      dartsFired >= dartsToFire) {                                         //retracted
+            Serial.println("not shooting!");
+
       resetDartsFired();                                                  //Reset darts fired stuff so it can happen again
+      
     }
   }
 }
