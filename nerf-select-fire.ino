@@ -97,10 +97,10 @@ void checkForDartsFired () {
     byte dartsToFire = (fireMode == SINGLE_FIRE ? 1 : 3);                 //determine max amounts of darts to be fired
     if (dartsFired < dartsToFire) {                                       //if can still fire (hasn't reached threshold of
       digitalWrite(MOTOR_OUTPUT_PIN, HIGH);                               //how many darts can fire), power pusher motor
-//      Serial.println("shootin!");
+      Serial.println("shootin!");
     } else if (dartCountingSwitch.isPressed() &&                          //if can't fire anymore darts and pusher 
      dartsFired >= dartsToFire) {                                         //retracted
-//      Serial.println("not shooting!");
+      Serial.println("not shooting!");
 
       resetDartsFired();                                                  //Reset darts fired stuff so it can happen again
       
