@@ -83,7 +83,7 @@ void toggleFireModes () {
 //when dart fired
 void fire() {
   dartCountingSwitch.read();                                              //read button
-  if (dartCountingSwitch.wasPressed()) {
+  if (dartCountingSwitch.wasReleased()) {
     dartsFired++;
     Serial.println("shot fired!");
   }
