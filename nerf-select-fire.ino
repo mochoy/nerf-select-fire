@@ -112,11 +112,11 @@ void selectFire () {
     if (trigger.isPressed()) {                                            //check of trigger is pressed
         if (fireMode == SAFETY) {                                         //if in safety mode, turn off motor
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);                          
-        } else if (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) {   //if in burst fire or single shot mode
-            isCheckingForDartsFired = true;                               //allow for darts to be fired, handled elsewhere
         } else if (fireMode == FULL_AUTO) {                               //if full auto turn on motor
             digitalWrite(MOTOR_OUTPUT_PIN, HIGH);                         
         }
+    } else if (trigger.wasPressed() && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {   //if in burst fire or single shot mode
+        isCheckingForDartsFired = true;                               //allow for darts to be fired, handled elsewhere
     } else if (!trigger.isPressed()) {                                    //if trigger isn't pressed
         if (fireMode == FULL_AUTO || fireMode == SAFETY) {                //if firemode is fullauto or safety, turn off motor
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);                          
