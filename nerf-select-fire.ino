@@ -137,13 +137,14 @@ void selectFire () {
             digitalWrite(MOTOR_OUTPUT_PIN, HIGH);                         
         }
     } else if (!trigger.isPressed()) {                                    //if trigger isn't pressed
-      canShootAgain = true;
+      
         if (fireMode == FULL_AUTO || fireMode == SAFETY) {                //if firemode is fullauto or safety, turn off motor
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);                          
         } else if ( !isCheckingForDartsFired                              //if all darts fired
          && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE) ) {       //and in burstfire 
           resetDartsFired();                                              //reset darts fired stuff
-        }   
+        }
+        canShootAgain = true;   
     }
 }
 
