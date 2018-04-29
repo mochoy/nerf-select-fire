@@ -9,6 +9,10 @@
 #include <Button.h>                                                     //library to deal with buttons easier
 #include <SoftwareSerial.h>
 
+#define SINGLE_SHOT_TIME 10
+#define BURST_TIME 10
+
+
 //pins
 #define IR_GATE_PIN 0                                                     //analog input
 #define TRIGGER_PIN 11                                                    //digital input
@@ -51,8 +55,8 @@ void setup () {
 
 void loop () {
     toggleFireModes();                                                    //constantly check for changes in firemodes
-    fire();                                                               //constantly check if dart is fired
-    checkForDartsFired();                                                 //do stuff if dart is fired
+//    fire();                                                               //constantly check if dart is fired
+//    checkForDartsFired();                                                 //do stuff if dart is fired
     selectFire();                                                         //do fancy select-fire stuff
 }
 
@@ -112,9 +116,19 @@ void checkForDartsFired () {
 }
 
 //do all the fancy select fire stuff
+bool canShootAgain = true;
 void selectFire () {
     trigger.read();                                                       //read trigger
-    if (trigger.wasPressed() && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {   //if in burst fire or single shot mode
+    if (canShootAgain && trigger.wasPressed() && (fireMode == SINGLE_FIRE || fireMode == BURST_FIRE)) {   //if in burst fire or single shot mode
+        if (fireMode == SINGLE_FIRE) {
+          digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
+          delay(SINGLE_SHOT_TIME);
+          resetDartsFired(); 
+        } else if (fireMode == BURST_FIRE) {
+          digitalWrite(MOTOR_OUTPUT_PIN, HIGH);
+          delay(BURST_TIME);
+          resetDartsFired(); 
+        }
         isCheckingForDartsFired = true;                               //allow for darts to be fired, handled elsewhere
     } else if (trigger.isPressed()) {                                            //check of trigger is pressed
         if (fireMode == SAFETY) {                                         //if in safety mode, turn off motor
@@ -123,6 +137,7 @@ void selectFire () {
             digitalWrite(MOTOR_OUTPUT_PIN, HIGH);                         
         }
     } else if (!trigger.isPressed()) {                                    //if trigger isn't pressed
+      canShootAgain = true;
         if (fireMode == FULL_AUTO || fireMode == SAFETY) {                //if firemode is fullauto or safety, turn off motor
             digitalWrite(MOTOR_OUTPUT_PIN, LOW);                          
         } else if ( !isCheckingForDartsFired                              //if all darts fired
@@ -133,6 +148,7 @@ void selectFire () {
 }
 
 void resetDartsFired () {
+  canShootAgain = false;
   digitalWrite(MOTOR_OUTPUT_PIN, LOW);                                    //turn of motor
   dartsFired = 0;                                                         //darts fired set to 0
   isCheckingForDartsFired = false;                                        //no longer checking if darts are being fired
