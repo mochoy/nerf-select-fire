@@ -101,7 +101,7 @@ void checkForDartsFired () {
     } else if (dartCountingSwitch.isPressed() &&                          //if can't fire anymore darts and pusher 
      dartsFired >= dartsToFire) {                                         //retracted
       Serial.println("not shooting!");
-
+      digitalWrite(MOTOR_OUTPUT_PIN, LOW);
       resetDartsFired();                                                  //Reset darts fired stuff so it can happen again
       
     }
